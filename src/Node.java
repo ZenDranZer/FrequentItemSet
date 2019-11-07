@@ -1,12 +1,15 @@
+import java.util.ArrayList;
+
 public class Node {
     String itemName;
     int count;
-    Node nextNode;
+    Node myNextNode;
+    Node myPrevNode;
+    ArrayList<Node> children;
 
     public Node(String itemName, int count, Node nextNode) {
         this.itemName = itemName;
         this.count = count;
-        this.nextNode = nextNode;
     }
 
     public String getItemName() {
@@ -21,11 +24,27 @@ public class Node {
         this.count++;
     }
 
-    public Node getNextNode() {
-        return nextNode;
+    public Node getMyNextNode() {
+        return myNextNode;
     }
 
-    public void setNextNode(Node nextNode) {
-        this.nextNode = nextNode;
+    public void setMyNextNode(Node myNextNode) {
+        this.myNextNode = myNextNode;
+    }
+
+    public Node getMyPrevNode() {
+        return myPrevNode;
+    }
+
+    public void setMyPrevNode(Node myPrevNode) {
+        this.myPrevNode = myPrevNode;
+    }
+
+    public ArrayList<Node> getChildren() {
+        return children;
+    }
+
+    public void addChild(Node child) {
+        children.add(child);
     }
 }
