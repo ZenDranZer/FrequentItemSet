@@ -1,0 +1,6 @@
+5 3
+{f,a,c,d,g,m,p}
+{a,b,c,f,l,m,o}
+{b,f,h,o}
+{b,k,c,p}
+{a,f,c,l,p,m,n}

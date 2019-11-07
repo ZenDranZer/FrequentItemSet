@@ -12,8 +12,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class Ssrrun {
+
 	int thrashold;
-	HashMap<String, Node> header = new HashMap<String, Node>();
+	HashMap<String, Integer> itemCount = new HashMap<>();
+	ArrayList<ArrayList<String>> dataSet = new ArrayList<>();
+	LinkedHashMap<String, Node> headerTable = new LinkedHashMap<>();
+	HashMap<String, Node> header = new HashMap<>();
+	Node root = new Node("root");
+	int numberOfTransations;
 	
 	/**Sorting dataset**/
 	public ArrayList<ArrayList<String>> itemSort(HashMap<String, Integer> itemMap, ArrayList<ArrayList<String>> ds) {
@@ -27,13 +33,13 @@ public class Ssrrun {
 		}
 		return ds;
 	}
+
 	/** Counting the frequency of the item**/
-	public HashMap<String, Integer> getFreqCount(ArrayList<ArrayList<String>> ds,Ssrrun obj)
+	public void getFreqCount()
 	{
-		thrashold=25;
-		HashMap<String, Integer> itemCount = new HashMap<String, Integer>();
+		//thrashold=25;
 		
-		for(ArrayList<String> transac: ds){
+		for(ArrayList<String> transac: dataSet){
 			for(String item: transac)
 			{
 				if(itemCount.containsKey(item)){
@@ -65,7 +71,7 @@ public class Ssrrun {
 				header.put(key, node);
 			}
 		}
-		for(ArrayList<String> items : ds) 
+		for(ArrayList<String> items : dataSet)
 		{
 			items.removeAll(abandonSet);
 		}
@@ -73,15 +79,10 @@ public class Ssrrun {
 		{
 			itemCount.remove(item);
 		}
-		System.out.println(ds);
-		ArrayList<ArrayList<String>> dataset=obj.itemSort(itemCount,ds);
-		System.out.println(dataset);
-		
-		/*for(Map.Entry<String, Node> hmm:header.entrySet())
-		{
-			System.out.println(hmm.getKey());
-		}*/
-		System.out.println(header);
+		//System.out.println(dataSet);
+		ArrayList<ArrayList<String>> dataset=this.itemSort(itemCount,dataSet);
+		//System.out.println(dataset);
+		//System.out.println(header);
 		//Sorting header Table
 		ArrayList<Node> ee = new ArrayList<>(header.values());
 		Comparator<Entry<String, Node>> comp= new Comparator<Entry<String, Node>>() {
@@ -98,12 +99,11 @@ public class Ssrrun {
 		Set<Entry<String, Node>> entries = header.entrySet();
 		ArrayList<Entry<String, Node>> listOfEntries = new ArrayList<Entry<String,Node>>(entries);
 		Collections.sort(listOfEntries, comp);
-		LinkedHashMap<String, Node> headerTable = new LinkedHashMap<String,Node>();
+
 		for(Entry<String, Node> entry : listOfEntries){
 			headerTable.put(entry.getKey(), entry.getValue());
         }
-		System.out.println(headerTable);
-		return itemCount;
+		//System.out.println(headerTable);
 	}
 	
 	
@@ -113,7 +113,7 @@ public class Ssrrun {
 		BufferedReader reader = new BufferedReader(new FileReader(f));
 		String first=reader.readLine();
 		String [] split=first.split(" ");
-		int n=Integer.parseInt(split[0]);
+		numberOfTransations=Integer.parseInt(split[0]);
 		thrashold=Integer.parseInt(split[1]);
 		String str;
 		ArrayList<ArrayList<String>> dataSet = new ArrayList<ArrayList<String>>();
@@ -143,11 +143,61 @@ public class Ssrrun {
 		reader.close();
 		return dataSet;
 	}
+
+	public void buildFPTree(){
+		root.setMyNextNode(null);
+		for (ArrayList<String> row: dataSet) {
+			Node previous = root;
+			HashMap<String , Node> children = previous.getChildren();
+
+			for (String item:row) {
+				if(!headerTable.containsKey(item))
+					continue;
+				Node temp;
+				if(children.containsKey(item)){
+					temp = children.get(item);
+					temp.increaseCount();
+				}else{
+					temp = new Node(item);
+					temp.setMyPrevNode(previous);
+					children.put(item,temp);
+					Node itemHead = headerTable.get(item);
+					if(itemHead!=null) {
+						itemHead.attach(temp);
+					}
+				}
+				previous = temp;
+				children = temp.getChildren();
+			}
+		}
+		printTree();
+	}
+
+
+	public void printTree(){
+		ArrayList<Node> printedNodes = new ArrayList<>();
+		printNode(root,printedNodes);
+	}
+
+	public void printNode(Node root,ArrayList<Node> printedNodes){
+		if(printedNodes.contains(root))
+			return;
+		if(root != this.root)
+			System.out.println(root.myPrevNode.itemName + "--Parent-->" + root.itemName);
+		else
+			System.out.println(root);
+		printedNodes.add(root);
+		for (Node n:root.children.values()) {
+			printNode(n,printedNodes);
+		}
+	}
+
 	public static void main(String[] args) throws IOException 
 	{
 		Ssrrun obj=new Ssrrun();
-		ArrayList<ArrayList<String>> ds = obj.readFile("C:\\Users\\Shivam\\eclipse-workspace\\SSR\\src\\abc.txt");
-		obj.getFreqCount(ds,obj);
+		obj.dataSet = obj.readFile("src/test.txt");
+		obj.getFreqCount();
+		obj.buildFPTree();
 	}
 
 }
