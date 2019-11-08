@@ -22,12 +22,13 @@ public class Node {
 	}
 	@Override
 	public String toString() {
-		return "FPNode [count=" + count + ", itemName=" + itemName + "]";
+		return "\nFPNode [count=" + count + ", itemName=" + itemName + " MyNextNode="+myNextNode+"]";
 	}
 	
 	public void attach(Node t){
 		Node node = this;
-		while(node.myNextNode!=null){
+		while(node.myNextNode!=null)
+		{
 			node = node.myNextNode;
 		}
 		node.myNextNode = t;

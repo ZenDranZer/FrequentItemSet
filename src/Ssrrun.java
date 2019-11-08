@@ -103,7 +103,8 @@ public class Ssrrun {
 		for(Entry<String, Node> entry : listOfEntries){
 			headerTable.put(entry.getKey(), entry.getValue());
         }
-		//System.out.println(headerTable);
+		System.out.print(dataSet);
+		System.out.println(headerTable);
 	}
 	
 	
@@ -145,7 +146,7 @@ public class Ssrrun {
 	}
 
 	public void buildFPTree(){
-		root.setMyNextNode(null);
+		root.setMyPrevNode(null);
 		for (ArrayList<String> row: dataSet) {
 			Node previous = root;
 			HashMap<String , Node> children = previous.getChildren();
@@ -162,7 +163,9 @@ public class Ssrrun {
 					temp.setMyPrevNode(previous);
 					children.put(item,temp);
 					Node itemHead = headerTable.get(item);
-					if(itemHead!=null) {
+					if(itemHead!=null) 
+					{
+						
 						itemHead.attach(temp);
 					}
 				}
@@ -183,7 +186,8 @@ public class Ssrrun {
 		if(printedNodes.contains(root))
 			return;
 		if(root != this.root)
-			System.out.println(root.myPrevNode.itemName + "--Parent-->" + root.itemName);
+			//System.out.println(root.myPrevNode.itemName + "--Parent-->" + root.itemName);
+		System.out.println(root);
 		else
 			System.out.println(root);
 		printedNodes.add(root);
