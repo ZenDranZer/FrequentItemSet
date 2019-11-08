@@ -163,9 +163,7 @@ public class Ssrrun {
 					temp.setMyPrevNode(previous);
 					children.put(item,temp);
 					Node itemHead = headerTable.get(item);
-					if(itemHead!=null) 
-					{
-						
+					if(itemHead!=null) {
 						itemHead.attach(temp);
 					}
 				}

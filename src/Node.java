@@ -4,7 +4,7 @@ public class Node {
 	String itemName;
 	int count;
 	Node myNextNode;
-	Node myPrevNode;
+	Node PrevNode;
 	HashMap<String,Node> children;
 
 
@@ -13,7 +13,7 @@ public class Node {
 		this.count = 1;
 		this.children =  new HashMap<String, Node>();
 		this.myNextNode =null;
-		this.myPrevNode = null;
+		this.PrevNode = null;
 	}
 
 	public int getCounts() 
@@ -22,7 +22,7 @@ public class Node {
 	}
 	@Override
 	public String toString() {
-		return "\nFPNode [count=" + count + ", itemName=" + itemName + " MyNextNode="+myNextNode+"]";
+		return "\nFPNode [count=" + count + ", itemName=" + itemName + " MyNextNode="+ myNextNode + " PreviousNode=" + PrevNode +"]";
 	}
 	
 	public void attach(Node t){
@@ -51,11 +51,11 @@ public class Node {
 	}
 
 	public Node getMyPrevNode() {
-		return myPrevNode;
+		return PrevNode;
 	}
 
 	public void setMyPrevNode(Node myPrevNode) {
-		this.myPrevNode = myPrevNode;
+		this.PrevNode = myPrevNode;
 	}
 
 	public HashMap<String,Node> getChildren() {
