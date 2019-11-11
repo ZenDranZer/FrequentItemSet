@@ -24,88 +24,65 @@ public class Ssrrun {
 	HashMap<String, Node> itemPrefixHeader = new HashMap<>();
 	Node root ;
 	ArrayList<Path> frequentPatterns = new ArrayList<>();
-	
-	/**Sorting dataset**/
-	public ArrayList<ArrayList<String>> itemSort(HashMap<String, Integer> itemMap, ArrayList<ArrayList<String>> ds) {
-		for(ArrayList<String> items : ds) {
-			Collections.sort(items, new Comparator<String>() {
-				@Override
-				public int compare(String key1, String key2) {
-					return itemMap.get(key2) - itemMap.get(key1);
-				}
-			});
-		}
-		return ds;
-	}
+
+
 
 	/** Counting the frequency of the item**/
-	public void getFreqCount()
-	{
-		//thrashold=25;
-		
+	public void getFreqCount() {
+		//Get count for each item.
 		for(ArrayList<String> transac: dataSet){
-			for(String item: transac)
-			{
+			for(String item: transac) {
 				if(itemCount.containsKey(item)){
 					int count = itemCount.get(item);
 					itemCount.put(item, ++count);
 				}
-				else
-				{
+				else {
 					itemCount.put(item, 1);
 				}
 			}
 		}
-		String key="";
-		int value;
-		ArrayList<String> abandonSet = new ArrayList<String>();
+
+		//Remove if less than Min_Supp
+		itemCount.entrySet().removeIf(e -> e.getValue()<thrashold);
+
+		String key;
+
+		//Generation of Header Table.
 		for(Map.Entry<String, Integer> hm:itemCount.entrySet())
 		{
-			key=hm.getKey();
-			value=hm.getValue();
-			if(value<thrashold)
-			{
-			abandonSet.add(key);
-			//itemCount.remove(key,value);	
-			}
-			else
-			{
-				Node node = new Node(key);
-				node.count = value;
-				header.put(key, node);
-			}
+			key = hm.getKey();
+			Node node = new Node(key);
+			node.count = hm.getValue();
+			header.put(key, node);
 		}
-		for(ArrayList<String> items : dataSet)
-		{
-			items.removeAll(abandonSet);
+
+		//Remove from dataset if not in header table.
+		for (ArrayList<String> row:dataSet) {
+			row.removeIf(e -> !header.keySet().contains(e));
 		}
-		for(String item :abandonSet )
-		{
-			itemCount.remove(item);
-		}
-		//System.out.println(dataSet);
-		ArrayList<ArrayList<String>> dataset=this.itemSort(itemCount,dataSet);
-		//System.out.println(dataset);
-		//System.out.println(header);
+
 		//Sorting header Table
-		ArrayList<Node> ee = new ArrayList<>(header.values());
-		Comparator<Entry<String, Node>> comp= new Comparator<Entry<String, Node>>() {
-			@Override
-			public int compare(Entry<String,Node> key1, Entry<String,Node> key2) 
-			{
-				Node obj1=key1.getValue();
-				Node obj2=key2.getValue();
-				int count1=obj2.getCounts();
-				int count2=obj1.getCounts();
-				return count1-count2;
-			}
-		};
+		Comparator<Entry<String, Node>> comp= (key1, key2) -> {return key2.getValue().getCounts() - key1.getValue().getCounts();};
 		Set<Entry<String, Node>> entries = header.entrySet();
-		ArrayList<Entry<String, Node>> listOfEntries = new ArrayList<Entry<String,Node>>(entries);
+		ArrayList<Entry<String, Node>> listOfEntries = new ArrayList<>(entries);
 		Collections.sort(listOfEntries, comp);
 		for(Entry<String, Node> entry : listOfEntries){
 			headerTable.put(entry.getKey(), entry.getValue());
         }
+
+		//sorting dataset
+		ArrayList<String> pattern = new ArrayList<>(headerTable.keySet());
+		ArrayList<ArrayList<String>> sortedDS = new ArrayList<>();
+		for (ArrayList<String> row:dataSet) {
+			ArrayList<String> tempRow = new ArrayList<>();
+			for (String s:pattern) {
+				if(row.contains(s))
+					tempRow.add(s);
+			}
+			sortedDS.add(tempRow);
+		}
+		dataSet = sortedDS;
+		System.gc();
 	}
 	
 	
@@ -193,10 +170,10 @@ public class Ssrrun {
 
 	public void SSRAlgorithm(){
 		Node n ;
-		for (String itemName: header.keySet()) {
+		for (String itemName: headerTable.keySet()) {
 			ArrayList<Path> prefixPatternBase = new ArrayList<>();
 			HashMap<String,Integer> freqnetItemList = new HashMap<>();
-			n = header.get(itemName);
+			n = headerTable.get(itemName);
 			while (n!=null){
 				Path p = new Path(n.count);
 				Node prevNode = n.PrevNode;
@@ -216,7 +193,18 @@ public class Ssrrun {
 			freqnetItemList.entrySet().removeIf(e -> e.getValue()<thrashold);
 			if(freqnetItemList.isEmpty())
 				continue;
+			Path p;
+			for (String s:freqnetItemList.keySet()) {
+				p = new Path(freqnetItemList.get(s));
+				p.addNode(itemName);
+				p.addNode(s);
+				frequentPatterns.add(p);
+			}
 			Node itemPrefixTree = itemPrefixTree(prefixPatternBase,freqnetItemList,itemName);
+			patternGeneration(itemPrefixTree);
+			itemPrefixHeader = new HashMap<>();
+			itemPrefixTree = null;
+			System.gc();
 		}
 	}
 
@@ -266,35 +254,70 @@ public class Ssrrun {
 				children = temp.getChildren();
 			}
 		}
-		if(itemName.equals("D")){
-			printTree(root);
-			System.out.println("\n\n\nItem name :"+itemName + "\n FIS: \n" + freqentItem);
-			System.out.println("Item name :"+itemName + "\n Base: \n" + base);
-		}
+//		if(itemName.equals("A")){
+//			printTree(root);
+//			System.out.println("\n\n\nItem name :"+itemName + "\n FIS: \n" + freqentItem);
+//			System.out.println("Item name :"+itemName + "\n Base: \n" + base);
+//		}
 		return root;
 	}
 
 	private void patternGeneration(Node root){
 		Node n;
+		ArrayList<Path> combinations = new ArrayList<>();
 		for(String s:itemPrefixHeader.keySet()){
 			n = itemPrefixHeader.get(s);
+			String itemName = n.itemName;
 			while (n!=null){
 				Path p = new Path(n.count);
 				Node prevNode = n.PrevNode;
 				while (prevNode!=root && prevNode!=null){
 					p.addNode(prevNode.itemName);
+					prevNode = prevNode.PrevNode;
 				}
+				n = n.myNextNode;
+				if(p.getPath().isEmpty())
+					continue;
+				combinations = getAllPaths(p,itemName);
+				combinations.removeIf(e -> e.getPathCount() < thrashold);
+				frequentPatterns.addAll(combinations);
+				combinations = new ArrayList<>();
+				System.gc();
 			}
 		}
 	}
 
+	private ArrayList<Path> getAllPaths(Path p,String itemName){
+		ArrayList<Path> combinations = new ArrayList<>();
+		int length = p.getPath().size();
+		double max = Math.pow(2, length);
+		for(int i = 1;i < max;i++){
+			String bitmap = Integer.toBinaryString(i);
+			Path path = new Path(p.getPathCount());
+			path.addNode(itemName);
+			for(int j = 0;j<bitmap.length();j++){
+				if(bitmap.charAt(j)=='1'){
+					path.addNode(p.getPath().get(length-bitmap.length()+j));
+				}
+			}
+			combinations.add(path);
+		}
+		System.gc();
+		return combinations;
+	}
+
 	public static void main(String[] args) throws IOException 
 	{
+		long start=System.nanoTime();
 		Ssrrun obj=new Ssrrun();
-		obj.dataSet = obj.readFile("src/Test2.txt");
+		obj.dataSet = obj.readFile("src/InputFiles/Dense 2500 1000.txt");
 		obj.getFreqCount();
 		obj.root = obj.buildFPTree("root");
 		obj.SSRAlgorithm();
-		//System.out.println("\n\n\n\n\n\n\n\n\nHeader table: \n" + obj.header);
+		long end=System.nanoTime();
+		double sec=(end-start)/1000000000.0;
+		System.out.println("\n Frequent patterns: \n" + obj.frequentPatterns);
+		System.out.println(obj.frequentPatterns.size());
+		System.out.println(sec);
 	}
 }

@@ -35,9 +35,15 @@ public class Path  {
 
     @Override
     public String toString() {
-        return "\nPath{" +
-                "path=" + path +
-                ", pathCount=" + pathCount +
-                '}';
+        return "\n"+path + ":" + pathCount;
     }
-}
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Path) {
+            return obj.toString().equals(toString());
+        }
+        return false;
+    }
+
+    }
