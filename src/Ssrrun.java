@@ -21,7 +21,9 @@ public class Ssrrun {
 	LinkedHashMap<String, Node> headerTable = new LinkedHashMap<>();
 	HashMap<String, Node> header = new HashMap<>();
 	int numberOfTransations;
+	HashMap<String, Node> itemPrefixHeader = new HashMap<>();
 	Node root ;
+	ArrayList<Path> frequentPatterns = new ArrayList<>();
 	
 	/**Sorting dataset**/
 	public ArrayList<ArrayList<String>> itemSort(HashMap<String, Integer> itemMap, ArrayList<ArrayList<String>> ds) {
@@ -193,17 +195,17 @@ public class Ssrrun {
 		Node n ;
 		for (String itemName: header.keySet()) {
 			ArrayList<Path> prefixPatternBase = new ArrayList<>();
-			HashMap<String,Integer> freqnetPattern = new HashMap<>();
+			HashMap<String,Integer> freqnetItemList = new HashMap<>();
 			n = header.get(itemName);
 			while (n!=null){
 				Path p = new Path(n.count);
 				Node prevNode = n.PrevNode;
 				while(prevNode!=root && prevNode!=null){
 					p.addNode(prevNode.itemName);
-					if(freqnetPattern.containsKey(prevNode.itemName))
-						freqnetPattern.put(prevNode.itemName,freqnetPattern.get(prevNode.itemName)+n.count);
+					if(freqnetItemList.containsKey(prevNode.itemName))
+						freqnetItemList.put(prevNode.itemName,freqnetItemList.get(prevNode.itemName)+n.count);
 					else
-						freqnetPattern.put(prevNode.itemName,n.count);
+						freqnetItemList.put(prevNode.itemName,n.count);
 					//System.out.println(itemName+"      "+prevNode);
 					prevNode = prevNode.PrevNode;
 				}
@@ -211,30 +213,29 @@ public class Ssrrun {
 					prefixPatternBase.add(p);
 				n = n.myNextNode;
 			}
-			freqnetPattern.entrySet().removeIf(e -> e.getValue()<thrashold);
-			if(freqnetPattern.isEmpty())
+			freqnetItemList.entrySet().removeIf(e -> e.getValue()<thrashold);
+			if(freqnetItemList.isEmpty())
 				continue;
-			Node itemPrefixTree = itemPrefixTree(prefixPatternBase,freqnetPattern,itemName);
+			Node itemPrefixTree = itemPrefixTree(prefixPatternBase,freqnetItemList,itemName);
 		}
 	}
 
 	private Node itemPrefixTree(ArrayList<Path> base,HashMap<String,Integer> freqentItem, String itemName){
-
 		Node root = new Node(itemName);
 		freqentItem = freqentItem.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).collect(
 				toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
 						LinkedHashMap::new));
-		HashMap<String, Node> header = new HashMap<>();
+		itemPrefixHeader = new HashMap<>();
 
 		for (Map.Entry<String,Integer> entry: freqentItem.entrySet()) {
 			Node node = new Node(entry.getKey());
 			node.count = entry.getValue();
 			//System.out.println(node);
-			header.put(entry.getKey(), node);
+			itemPrefixHeader.put(entry.getKey(), node);
 		}
 
 		for (Path p:base) {
-			p.getPath().removeIf(e -> !header.keySet().contains(e));
+			p.getPath().removeIf(e -> !itemPrefixHeader.keySet().contains(e));
 			ArrayList<String> pattern = new ArrayList<>(freqentItem.keySet());
 			ArrayList<String> path = p.getPath();
 			p.resetPath();
@@ -256,7 +257,7 @@ public class Ssrrun {
 					temp.setCount(p.getPathCount());
 					temp.setMyPrevNode(previous);
 					children.put(s,temp);
-					Node itemHead = header.get(s);
+					Node itemHead = itemPrefixHeader.get(s);
 					if(itemHead!=null) {
 						itemHead.attach(temp);
 					}
@@ -273,6 +274,19 @@ public class Ssrrun {
 		return root;
 	}
 
+	private void patternGeneration(Node root){
+		Node n;
+		for(String s:itemPrefixHeader.keySet()){
+			n = itemPrefixHeader.get(s);
+			while (n!=null){
+				Path p = new Path(n.count);
+				Node prevNode = n.PrevNode;
+				while (prevNode!=root && prevNode!=null){
+					p.addNode(prevNode.itemName);
+				}
+			}
+		}
+	}
 
 	public static void main(String[] args) throws IOException 
 	{
@@ -283,5 +297,4 @@ public class Ssrrun {
 		obj.SSRAlgorithm();
 		//System.out.println("\n\n\n\n\n\n\n\n\nHeader table: \n" + obj.header);
 	}
-
 }
