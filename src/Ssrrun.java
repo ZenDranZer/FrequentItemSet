@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import static java.util.stream.Collectors.toMap;
+
 public class Ssrrun {
 
 	int thrashold;
@@ -18,8 +20,8 @@ public class Ssrrun {
 	ArrayList<ArrayList<String>> dataSet = new ArrayList<>();
 	LinkedHashMap<String, Node> headerTable = new LinkedHashMap<>();
 	HashMap<String, Node> header = new HashMap<>();
-	Node root = new Node("root");
 	int numberOfTransations;
+	Node root ;
 	
 	/**Sorting dataset**/
 	public ArrayList<ArrayList<String>> itemSort(HashMap<String, Integer> itemMap, ArrayList<ArrayList<String>> ds) {
@@ -99,12 +101,9 @@ public class Ssrrun {
 		Set<Entry<String, Node>> entries = header.entrySet();
 		ArrayList<Entry<String, Node>> listOfEntries = new ArrayList<Entry<String,Node>>(entries);
 		Collections.sort(listOfEntries, comp);
-
 		for(Entry<String, Node> entry : listOfEntries){
 			headerTable.put(entry.getKey(), entry.getValue());
         }
-		System.out.print(dataSet);
-		System.out.println(headerTable);
 	}
 	
 	
@@ -145,12 +144,12 @@ public class Ssrrun {
 		return dataSet;
 	}
 
-	public void buildFPTree(){
+	public Node buildFPTree(String rootName){
+		Node root = new Node(rootName);
 		root.setMyPrevNode(null);
 		for (ArrayList<String> row: dataSet) {
 			Node previous = root;
 			HashMap<String , Node> children = previous.getChildren();
-
 			for (String item:row) {
 				if(!headerTable.containsKey(item))
 					continue;
@@ -171,9 +170,8 @@ public class Ssrrun {
 				children = temp.getChildren();
 			}
 		}
-		printTree();
+		return root;
 	}
-
 
 	public void printTree(){
 		ArrayList<Node> printedNodes = new ArrayList<>();
@@ -194,12 +192,70 @@ public class Ssrrun {
 		}
 	}
 
+
+	public void SSRAlgorithm(){
+		Node n ;
+		for (String itemName: header.keySet()) {
+			ArrayList<Path> prefixPatternBase = new ArrayList<>();
+			HashMap<String,Integer> freqnetPattern = new HashMap<>();
+			n = header.get(itemName);
+			while (n!=null){
+				Path p = new Path(n.count);
+				Node prevNode = n.PrevNode;
+				while(prevNode!=root && prevNode!=null){
+					p.addNode(prevNode);
+					if(freqnetPattern.containsKey(prevNode.itemName))
+						freqnetPattern.put(prevNode.itemName,freqnetPattern.get(prevNode.itemName)+n.count);
+					else
+						freqnetPattern.put(prevNode.itemName,n.count);
+					System.out.println(itemName+"      "+prevNode);
+					prevNode = prevNode.PrevNode;
+				}
+				if(!p.getPath().isEmpty())
+					prefixPatternBase.add(p);
+				n = n.myNextNode;
+			}
+			freqnetPattern.entrySet().removeIf(e -> e.getValue()<thrashold);
+			if(freqnetPattern.isEmpty())
+				continue;
+			Node itemPrefixTree = itemPrefixTree(prefixPatternBase,freqnetPattern,itemName);
+		}
+	}
+
+	private Node itemPrefixTree(ArrayList<Path> base,HashMap<String,Integer> freqentItem, String itemName){
+
+		Node root = new Node(itemName);
+		freqentItem = freqentItem.entrySet().stream().sorted(Collections.reverseOrder(Map.Entry.comparingByValue())).collect(
+				toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+						LinkedHashMap::new));
+		HashMap<String, Node> header = new HashMap<>();
+
+		for (Map.Entry<String,Integer> entry: freqentItem.entrySet()) {
+			Node node = new Node(entry.getKey());
+			node.count = entry.getValue();
+			//System.out.println(node);
+			header.put(entry.getKey(), node);
+		}
+
+		for (Path p:base) {
+			p.getPath().removeIf(e -> !header.keySet().contains(e.itemName));
+			Collections.sort(p.getPath(), (s1, s2) -> s2.count - s1.count);
+		}
+
+		System.out.println("\n\n\nItem name :"+itemName + "\n FIS: \n" + freqentItem);
+		System.out.println("Item name :"+itemName + "\n Base: \n" + base);
+		return null;
+	}
+
+
 	public static void main(String[] args) throws IOException 
 	{
 		Ssrrun obj=new Ssrrun();
-		obj.dataSet = obj.readFile("src/test.txt");
+		obj.dataSet = obj.readFile("src/Test2.txt");
 		obj.getFreqCount();
-		obj.buildFPTree();
+		obj.root = obj.buildFPTree("root");
+		obj.SSRAlgorithm();
+		//System.out.println("\n\n\n\n\n\n\n\n\nHeader table: \n" + obj.header);
 	}
 
 }
