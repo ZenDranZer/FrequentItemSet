@@ -42,6 +42,10 @@ public class Node {
 		this.count++;
 	}
 
+	public void setCount(int count) {
+		this.count = count;
+	}
+
 	public Node getMyNextNode() {
 		return myNextNode;
 	}

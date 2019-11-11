@@ -173,7 +173,7 @@ public class Ssrrun {
 		return root;
 	}
 
-	public void printTree(){
+	public void printTree(Node root){
 		ArrayList<Node> printedNodes = new ArrayList<>();
 		printNode(root,printedNodes);
 	}
@@ -181,11 +181,7 @@ public class Ssrrun {
 	public void printNode(Node root,ArrayList<Node> printedNodes){
 		if(printedNodes.contains(root))
 			return;
-		if(root != this.root)
-			//System.out.println(root.myPrevNode.itemName + "--Parent-->" + root.itemName);
 		System.out.println(root);
-		else
-			System.out.println(root);
 		printedNodes.add(root);
 		for (Node n:root.children.values()) {
 			printNode(n,printedNodes);
@@ -203,12 +199,12 @@ public class Ssrrun {
 				Path p = new Path(n.count);
 				Node prevNode = n.PrevNode;
 				while(prevNode!=root && prevNode!=null){
-					p.addNode(prevNode);
+					p.addNode(prevNode.itemName);
 					if(freqnetPattern.containsKey(prevNode.itemName))
 						freqnetPattern.put(prevNode.itemName,freqnetPattern.get(prevNode.itemName)+n.count);
 					else
 						freqnetPattern.put(prevNode.itemName,n.count);
-					System.out.println(itemName+"      "+prevNode);
+					//System.out.println(itemName+"      "+prevNode);
 					prevNode = prevNode.PrevNode;
 				}
 				if(!p.getPath().isEmpty())
@@ -238,13 +234,43 @@ public class Ssrrun {
 		}
 
 		for (Path p:base) {
-			p.getPath().removeIf(e -> !header.keySet().contains(e.itemName));
-			Collections.sort(p.getPath(), (s1, s2) -> s2.count - s1.count);
+			p.getPath().removeIf(e -> !header.keySet().contains(e));
+			ArrayList<String> pattern = new ArrayList<>(freqentItem.keySet());
+			ArrayList<String> path = p.getPath();
+			p.resetPath();
+			for (String s:pattern) {
+				if(path.contains(s))
+					p.addNode(s);
+			}
 		}
-
-		System.out.println("\n\n\nItem name :"+itemName + "\n FIS: \n" + freqentItem);
-		System.out.println("Item name :"+itemName + "\n Base: \n" + base);
-		return null;
+		for (Path p: base) {
+			Node previous = root;
+			HashMap<String , Node> children = previous.getChildren();
+			for (String s: p.getPath()) {
+				Node temp;
+				if(children.containsKey(s)){
+					temp = children.get(s);
+					temp.setCount(temp.count+p.getPathCount());
+				}else{
+					temp = new Node(s);
+					temp.setCount(p.getPathCount());
+					temp.setMyPrevNode(previous);
+					children.put(s,temp);
+					Node itemHead = header.get(s);
+					if(itemHead!=null) {
+						itemHead.attach(temp);
+					}
+				}
+				previous = temp;
+				children = temp.getChildren();
+			}
+		}
+		if(itemName.equals("D")){
+			printTree(root);
+			System.out.println("\n\n\nItem name :"+itemName + "\n FIS: \n" + freqentItem);
+			System.out.println("Item name :"+itemName + "\n Base: \n" + base);
+		}
+		return root;
 	}
 
 

@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 public class Path  {
 
-    private ArrayList<Node> path;
+    private ArrayList<String> path;
     private int pathCount;
 
     public Path(int pathCount) {
@@ -9,16 +9,20 @@ public class Path  {
         this.pathCount = pathCount;
     }
 
-    public ArrayList<Node> getPath() {
+    public ArrayList<String> getPath() {
         return path;
     }
 
-    public void addNode(Node path) {
+    public void addNode(String path) {
         this.path.add(path);
     }
 
-    public void removeNode(Node node){
+    public void removeNode(String node){
         this.path.remove(node);
+    }
+
+    public void resetPath(){
+        this.path = new ArrayList<>();
     }
 
     public int getPathCount() {
