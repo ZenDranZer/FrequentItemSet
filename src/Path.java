@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 public class Path  {
 
-    private ArrayList<String> path;
+    private ArrayList<Node> path;
     private int pathCount;
 
     public Path(int pathCount) {
@@ -9,16 +9,20 @@ public class Path  {
         this.pathCount = pathCount;
     }
 
-    public ArrayList<String> getPath() {
+    public ArrayList<Node> getPath() {
         return path;
     }
 
-    public void addNode(String path) {
+    public void addNode(Node path) {
         this.path.add(path);
     }
 
-    public void removeNode(String node){
-        this.path.remove(node);
+    public boolean contains(Node n){
+        for (Node node:path) {
+            if(node.itemName.equals(n.itemName))
+                return true;
+        }
+        return false;
     }
 
     public void resetPath(){
@@ -35,7 +39,7 @@ public class Path  {
 
     @Override
     public String toString() {
-        return "\n"+path + ":" + pathCount;
+        return "\n"+ path + ":" + pathCount;
     }
 
     @Override

@@ -22,7 +22,7 @@ public class Node {
 	}
 	@Override
 	public String toString() {
-		return "FPNode [count=" + count + ", itemName=" + itemName +"]\n";
+		return itemName;
 	}
 	
 	public void attach(Node t){
