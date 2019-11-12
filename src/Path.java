@@ -41,7 +41,9 @@ public class Path  {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof Path) {
-            return obj.toString().equals(toString());
+            String[] str1 = toString().split(":");
+            String[] str2 = obj.toString().split(":");
+            return str1[0].equals(str2[0]);
         }
         return false;
     }
