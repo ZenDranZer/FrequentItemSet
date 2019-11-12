@@ -1,9 +1,5 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
-import java.util.Map.Entry;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -17,6 +13,7 @@ public class FreqentItems {
 	private HashMap<String, Node> header = new HashMap<>();
 	private Node root;
 	private ArrayList<Path> frequentPatterns = new ArrayList<>();
+	private PrintWriter pw ;
 
 	/**Reading the file and parsing the data into proper format**/
 	public ArrayList<ArrayList<String>> readFile(String path) throws IOException {
@@ -52,6 +49,7 @@ public class FreqentItems {
 			}
 		}
 		reader.close();
+		System.out.println("Data Read.");
 		return dataSet;
 	}
 
@@ -75,6 +73,7 @@ public class FreqentItems {
 				.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
 				.collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
 						LinkedHashMap::new));
+		System.out.println("Count added.");
 	}
 
 	public void generateHeaderTable() {
@@ -85,22 +84,14 @@ public class FreqentItems {
 			key = hm.getKey();
 			Node node = new Node(key);
 			node.count = hm.getValue();
-			header.put(key, node);
+			headerTable.put(key, node);
 		}
 
 		//Remove from dataset if not in header table.
 		for (ArrayList<String> row : dataSet) {
-			row.removeIf(e -> !header.keySet().contains(e));
+			row.removeIf(e -> !headerTable.keySet().contains(e));
 		}
-
-		//Sorting header Table
-		Comparator<Entry<String, Node>> comp = (key1, key2) -> key2.getValue().getCounts() - key1.getValue().getCounts();
-		Set<Entry<String, Node>> entries = header.entrySet();
-		ArrayList<Entry<String, Node>> listOfEntries = new ArrayList<>(entries);
-		Collections.sort(listOfEntries, comp);
-		for (Entry<String, Node> entry : listOfEntries) {
-			headerTable.put(entry.getKey(), entry.getValue());
-		}
+		System.out.println("Header table generated.");
 	}
 
 	public void sortDataSet(){
@@ -116,6 +107,7 @@ public class FreqentItems {
 			sortedDS.add(tempRow);
 		}
 		dataSet = sortedDS;
+		System.out.println("Dataset Sorted.");
 	}
 
 	public Node buildFPTree(String rootName){
@@ -145,6 +137,7 @@ public class FreqentItems {
 			}
 		}
 		//printTree(root);
+		System.out.println("Tree generated.");
 		return root;
 	}
 
@@ -167,7 +160,6 @@ public class FreqentItems {
 	public void frequentItemsGen(){
 		Node n ;
 		for (String itemName: headerTable.keySet()) {
-			ArrayList<Path> prefixPatternBase = new ArrayList<>();
 			HashMap<Node,Integer> frequentItemList = new HashMap<>();
 			n = headerTable.get(itemName);
 			while (n!=null){
@@ -181,9 +173,6 @@ public class FreqentItems {
 					else
 						frequentItemList.put(prevNode,n.count);
 					prevNode = prevNode.PrevNode;
-				}
-				if(!p.getPath().isEmpty()){
-					prefixPatternBase.add(p);
 				}
 				n = n.myNextNode;
 			}
@@ -210,15 +199,30 @@ public class FreqentItems {
 			allP.setPathCount(minimumCount);
 			frequentPatterns.removeIf(e -> e.equals(allP));
 			frequentPatterns.add(allP);
+			frequentPatterns.removeIf(e->e.getPathCount()<thrashold || e.getPathCount()==65536555);
+			System.out.println("FPatterns for "+ itemName +" generated.");
+			writeToFile();
 		}
-		frequentPatterns.removeIf(e->e.getPathCount()<thrashold || e.getPathCount()==65536555);
+	}
+
+	private void writeToFile(){
+		try {
+			pw = new PrintWriter(new BufferedWriter(new FileWriter(new File("src/output.txt"),true)));
+			for (Path p:frequentPatterns) {
+				pw.println(p);
+			}
+			pw.flush();
+			frequentPatterns = new ArrayList<>();
+		}catch (Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) throws IOException
 	{
 		long start=System.nanoTime();
 		FreqentItems obj=new FreqentItems();
-		obj.dataSet = obj.readFile("src/InputFiles/input1.txt");
+		obj.dataSet = obj.readFile("src/InputFiles/50000_10.txt");
 		obj.getFreqCount();
 		obj.generateHeaderTable();
 		obj.sortDataSet();
@@ -226,11 +230,6 @@ public class FreqentItems {
 		obj.frequentItemsGen();
 		long end=System.nanoTime();
 		double sec=(end-start)/1000000000.0;
-		System.out.println("\n Frequent patterns: \n");
-		for (Path p:obj.frequentPatterns) {
-			System.out.println(p);
-		}
-		System.out.println(obj.frequentPatterns.size());
 		System.out.println(sec);
 	}
 }

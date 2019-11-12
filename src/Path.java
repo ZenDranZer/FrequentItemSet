@@ -39,7 +39,7 @@ public class Path  {
 
     @Override
     public String toString() {
-        return "\n"+ path + ":" + pathCount;
+        return path + ":" + pathCount;
     }
 
     @Override
