@@ -171,14 +171,14 @@ public class FreqentItems {
 				Path p = new Path(count);
 				p.addNode(itemNode);
 				p.addNode(node);
-				cp.addNode(node);
 				if(!allP.contains(node)){
 					allP.addNode(node);
 					frequentPatterns.add(p);
 				}
 				if(count<minimumCount)
 					minimumCount=count;
-				if(cp.getPath().size()>1){
+				if(cp.getPath().size()>1 && !cp.contains(node)){
+					cp.addNode(node);
 					cp.setPathCount(minimumCount);
 					frequentPatterns.add(cp);
 				}
@@ -209,7 +209,7 @@ public class FreqentItems {
 	{
 		long start=System.nanoTime();
 		FreqentItems obj=new FreqentItems();
-		obj.dataSet = obj.readFile("src/InputFiles/Dense 25000 20000.txt");
+		obj.dataSet = obj.readFile("src/InputFiles/Sparse 25000 500.txt");
 		System.out.println("Threshold: "+obj.threshold);
 		obj.getFreqCount();
 		obj.generateHeaderTable();
