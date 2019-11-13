@@ -6,14 +6,12 @@ import static java.util.stream.Collectors.toMap;
 
 public class FreqentItems {
 
-	private int thrashold;
+	private int threshold;
 	private HashMap<String, Integer> itemCount = new HashMap<>();
 	private ArrayList<ArrayList<String>> dataSet = new ArrayList<>();
 	private LinkedHashMap<String, Node> headerTable = new LinkedHashMap<>();
-	private HashMap<String, Node> header = new HashMap<>();
 	private Node root;
 	private ArrayList<Path> frequentPatterns = new ArrayList<>();
-	private PrintWriter pw ;
 
 	/**Reading the file and parsing the data into proper format**/
 	public ArrayList<ArrayList<String>> readFile(String path) throws IOException {
@@ -21,13 +19,12 @@ public class FreqentItems {
 		BufferedReader reader = new BufferedReader(new FileReader(f));
 		String first=reader.readLine();
 		String [] split=first.split(" ");
-		int numberOfTransations = Integer.parseInt(split[0]);
-		thrashold=Integer.parseInt(split[1]);
+		threshold =Integer.parseInt(split[1]);
 		String str;
 		ArrayList<ArrayList<String>> dataSet = new ArrayList<ArrayList<String>>();
 		while((str = reader.readLine()) != null) {
-			if(!"".equals(str)) {
-				ArrayList<String> tmpList = new ArrayList<String>();
+			if(!str.isEmpty()) {
+				ArrayList<String> tmpList = new ArrayList<>();
 				String[] s = str.split(",");
 				for(int i = 0; i <s.length; i++)
 				{
@@ -68,7 +65,7 @@ public class FreqentItems {
 		}
 
 		//Remove if less than Min_Supp
-		itemCount.entrySet().removeIf(e -> e.getValue() < thrashold);
+		itemCount.entrySet().removeIf(e -> e.getValue() < threshold);
 		itemCount = itemCount.entrySet().stream()
 				.sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
 				.collect(toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
@@ -141,22 +138,6 @@ public class FreqentItems {
 		return root;
 	}
 
-	public void printTree(Node root){
-		ArrayList<Node> printedNodes = new ArrayList<>();
-		printNode(root,printedNodes);
-	}
-
-	public void printNode(Node root,ArrayList<Node> printedNodes){
-		if(printedNodes.contains(root))
-			return;
-		System.out.println(root + "\t\t"+root.getMyPrevNode());
-		printedNodes.add(root);
-		for (Node n:root.children.values()) {
-			printNode(n,printedNodes);
-		}
-	}
-
-
 	public void frequentItemsGen(){
 		Node n ;
 		for (String itemName: headerTable.keySet()) {
@@ -176,7 +157,7 @@ public class FreqentItems {
 				}
 				n = n.myNextNode;
 			}
-			frequentItemList.entrySet().removeIf(e -> e.getValue()<thrashold);
+			frequentItemList.entrySet().removeIf(e -> e.getValue()< threshold);
 //			System.out.println("Item: " + itemName);
 //			System.out.println("Base: "+ prefixPatternBase);
 //			System.out.println("FIL: " + frequentItemList);
@@ -184,30 +165,36 @@ public class FreqentItems {
 			Node itemNode = new Node(itemName);
 			Path allP = new Path(minimumCount);
 			allP.addNode(itemNode);
+			Path cp = new Path(minimumCount);
 			for (Node node:frequentItemList.keySet()) {
 				int count = frequentItemList.get(node);
 				Path p = new Path(count);
 				p.addNode(itemNode);
 				p.addNode(node);
+				cp.addNode(node);
 				if(!allP.contains(node)){
 					allP.addNode(node);
 					frequentPatterns.add(p);
 				}
 				if(count<minimumCount)
 					minimumCount=count;
+				if(cp.getPath().size()>1){
+					cp.setPathCount(minimumCount);
+					frequentPatterns.add(cp);
+				}
 			}
 			allP.setPathCount(minimumCount);
 			frequentPatterns.removeIf(e -> e.equals(allP));
 			frequentPatterns.add(allP);
-			frequentPatterns.removeIf(e->e.getPathCount()<thrashold || e.getPathCount()==65536555);
-			System.out.println("FPatterns for "+ itemName +" generated.");
+			frequentPatterns.removeIf(e->e.getPathCount()< threshold || e.getPathCount()==65536555);
+			//System.out.println("FPatterns for "+ itemName +" generated.");
 			writeToFile();
 		}
 	}
 
 	private void writeToFile(){
 		try {
-			pw = new PrintWriter(new BufferedWriter(new FileWriter(new File("src/output.txt"),true)));
+			PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(new File("src/output.txt"), true)));
 			for (Path p:frequentPatterns) {
 				pw.println(p);
 			}
@@ -222,7 +209,8 @@ public class FreqentItems {
 	{
 		long start=System.nanoTime();
 		FreqentItems obj=new FreqentItems();
-		obj.dataSet = obj.readFile("src/InputFiles/50000_10.txt");
+		obj.dataSet = obj.readFile("src/InputFiles/Dense 25000 20000.txt");
+		System.out.println("Threshold: "+obj.threshold);
 		obj.getFreqCount();
 		obj.generateHeaderTable();
 		obj.sortDataSet();

@@ -11,15 +11,11 @@ public class Node {
 	public Node(String name) {
 		this.itemName = name;
 		this.count = 1;
-		this.children =  new HashMap<String, Node>();
+		this.children =  new HashMap<>();
 		this.myNextNode =null;
 		this.PrevNode = null;
 	}
 
-	public int getCounts() 
-	{
-		return count;
-	}
 	@Override
 	public String toString() {
 		return itemName;
@@ -34,24 +30,8 @@ public class Node {
 		node.myNextNode = t;
 	}
 
-	public String getItemName() {
-		return itemName;
-	}
-
 	public void increaseCount() {
 		this.count++;
-	}
-
-	public void setCount(int count) {
-		this.count = count;
-	}
-
-	public Node getMyNextNode() {
-		return myNextNode;
-	}
-
-	public void setMyNextNode(Node myNextNode) {
-		this.myNextNode = myNextNode;
 	}
 
 	public Node getMyPrevNode() {
@@ -64,10 +44,6 @@ public class Node {
 
 	public HashMap<String,Node> getChildren() {
 		return children;
-	}
-
-	public void addChild(Node child) {
-		children.put(child.itemName,child);
 	}
 
 }

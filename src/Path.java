@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+
 public class Path  {
 
     private ArrayList<Node> path;
@@ -25,10 +26,6 @@ public class Path  {
         return false;
     }
 
-    public void resetPath(){
-        this.path = new ArrayList<>();
-    }
-
     public int getPathCount() {
         return pathCount;
     }
@@ -39,7 +36,7 @@ public class Path  {
 
     @Override
     public String toString() {
-        return path + ":" + pathCount;
+        return path + " - " + pathCount;
     }
 
     @Override
