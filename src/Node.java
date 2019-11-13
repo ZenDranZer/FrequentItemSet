@@ -46,4 +46,9 @@ public class Node {
 		return children;
 	}
 
+	@Override
+	public Node clone(){
+		Node p = new Node(itemName);
+		return p;
+	}
 }

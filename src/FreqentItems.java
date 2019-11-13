@@ -133,7 +133,6 @@ public class FreqentItems {
 				children = temp.getChildren();
 			}
 		}
-		//printTree(root);
 		System.out.println("Tree generated.");
 		return root;
 	}
@@ -158,36 +157,35 @@ public class FreqentItems {
 				n = n.myNextNode;
 			}
 			frequentItemList.entrySet().removeIf(e -> e.getValue()< threshold);
-//			System.out.println("Item: " + itemName);
-//			System.out.println("Base: "+ prefixPatternBase);
-//			System.out.println("FIL: " + frequentItemList);
 			int minimumCount = 65536555;
 			Node itemNode = new Node(itemName);
 			Path allP = new Path(minimumCount);
 			allP.addNode(itemNode);
 			Path cp = new Path(minimumCount);
+			cp.addNode(itemNode);
 			for (Node node:frequentItemList.keySet()) {
 				int count = frequentItemList.get(node);
 				Path p = new Path(count);
 				p.addNode(itemNode);
 				p.addNode(node);
+				cp.addNode(node);
 				if(!allP.contains(node)){
 					allP.addNode(node);
 					frequentPatterns.add(p);
 				}
 				if(count<minimumCount)
 					minimumCount=count;
-				if(cp.getPath().size()>1 && !cp.contains(node)){
-					cp.addNode(node);
+
+				if(cp.getPath().size()>1){
 					cp.setPathCount(minimumCount);
-					frequentPatterns.add(cp);
+					Path newCP = cp.clone();
+					frequentPatterns.add(newCP);
 				}
 			}
 			allP.setPathCount(minimumCount);
 			frequentPatterns.removeIf(e -> e.equals(allP));
 			frequentPatterns.add(allP);
 			frequentPatterns.removeIf(e->e.getPathCount()< threshold || e.getPathCount()==65536555);
-			//System.out.println("FPatterns for "+ itemName +" generated.");
 			writeToFile();
 		}
 	}

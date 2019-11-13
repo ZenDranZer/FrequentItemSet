@@ -49,4 +49,13 @@ public class Path  {
         return false;
     }
 
+    @Override
+    public Path clone(){
+        Path p = new Path(pathCount);
+        for (Node n:path) {
+            p.addNode(n.clone());
+        }
+        return p;
+    }
+
     }
